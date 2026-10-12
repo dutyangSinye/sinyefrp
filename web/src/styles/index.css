@@ -1,0 +1,136 @@
+/* 全局样式。
+ *
+ * 目标浏览器只有 Edge（Chromium），因此直接用 CSS 变量与现代选择器，
+ * 不引入任何 IE 垫片（见 docs/v1.0/02-技术选型.md §6.1）。
+ * 视觉基准是 Element Plus 的浅色主题，这里只做少量补充与密度调整。
+ */
+
+:root {
+  --sf-bg: #f5f6f7;
+  --sf-card: #ffffff;
+  --sf-line: #dee0e3;
+  --sf-fg: #1f2329;
+  --sf-muted: #646a73;
+  --sf-radius: 8px;
+
+  /* Element Plus 主色沿用其默认蓝，不覆写，保证组件库内部一致性。 */
+  --sf-page-gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--sf-bg);
+  color: var(--sf-fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC',
+    'Hiragino Sans GB', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 数字型字段用等宽字体，便于纵向比对端口、流量等列。 */
+.sf-mono {
+  font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  /* 只在放不下时才从中间断开：runID、clientID、访问地址这类无空格长串
+     是唯一会把「详情」里的两列表格撑出横向滚动条的东西 —— 不断行的话
+     它没有换行点，浏览器只能加宽列。用 anywhere 而不是 break-all，
+     放得下时（绝大多数情况）行为与从前完全一致。 */
+  overflow-wrap: anywhere;
+}
+
+.sf-muted {
+  color: var(--sf-muted);
+}
+
+.sf-page-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.sf-page-sub {
+  color: var(--sf-muted);
+  font-size: 13px;
+  margin: 0 0 var(--sf-page-gap);
+}
+
+/* 卡片外的统一间距：Element Plus 的 el-card 默认无外边距，
+ * 在多卡片页面里会贴在一起。 */
+.sf-stack > * + * {
+  margin-top: var(--sf-page-gap);
+}
+
+.sf-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sf-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 键值网格：总览页的信息块。 */
+.sf-kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px 20px;
+}
+
+.sf-kv > div > span {
+  display: block;
+  color: var(--sf-muted);
+  font-size: 12px;
+}
+
+.sf-kv > div > b {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* 表单栅格：让 el-form-item 在窄屏也能自动折行。 */
+.sf-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0 16px;
+}
+
+.sf-form-grid .el-form-item {
+  margin-bottom: 18px;
+}
+
+/* 代码/配置预览区。 */
+.sf-code {
+  background: #fafafa;
+  border: 1px solid var(--sf-line);
+  border-radius: var(--sf-radius);
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: 440px;
+  font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre;
+  margin: 0;
+}
+
+/* 表格里的次要说明文字。 */
+.sf-cell-sub {
+  color: var(--sf-muted);
+  font-size: 12px;
+}

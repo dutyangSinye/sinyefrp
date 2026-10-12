@@ -1,0 +1,31 @@
+# 换行约定
+#
+# 本项目对换行**敏感**，不是排版偏好：
+#   - Windows 部署脚本（.ps1）必须是 CRLF；PS 5.1 解析 LF 脚本时
+#     某些多行构造会出错，且报错不指向换行。
+#   - Linux 部署脚本（.sh）必须是 LF，带 BOM 会报「No such file or directory」、
+#     CRLF 会报「bad interpreter」，两条都不指向真因。
+#
+# .sh 目前不在仓库里（由 internal\pack\scripts_posix.go 在运行时生成二进制），
+# 这里先钉住规则，将来一旦有模板文件入库就自动生效，不必再想起这件事。
+#
+# BOM 不在本文件的管辖范围内：git 不会自动加 BOM，
+# .ps1 的 BOM 由文件本身的编码决定（新建脚本时显式写入）。
+
+# 文本文件统一按 LF 入库，检出时按下列规则还原。
+* text=auto eol=lf
+
+# Windows 脚本：检出为 CRLF。
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Linux / POSIX 脚本：始终 LF。
+*.sh text eol=lf
+
+# 明确标记为二进制，禁止 git 做任何换行转换或 diff。
+*.exe binary
+*.zip binary
+*.png binary
+*.ico binary
+*.db binary

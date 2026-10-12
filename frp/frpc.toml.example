@@ -1,0 +1,28 @@
+# frpc 运行配置样板
+#
+# 复制为 frpc.toml 后按实际情况修改，再执行 netconnect.bat 启动。
+#
+# 为什么真实文件不入库：
+#   它写的是「这台机器从哪个入口连出去、把本机的哪个端口放出去」——
+#   生产接入点地址、远程桌面端口、代理名都在里面。这类信息跟着仓库走
+#   没有任何收益，只会在仓库可见性被改动的那一天变成事故。
+#   已在 .gitignore 中排除，本文件是脱敏后的参考。
+
+serverAddr = "你的 frps 公网地址"
+serverPort = 7000
+
+# auth.token 必须与服务端一致。
+#
+# 最常见的连不上原因不是地址写错，而是两端各配了一个不一样的 token：
+# 管理台生成部署包时取的是「客户端接入点」上的 token，手工改过 frpc.toml
+# 就会静默不匹配（frpc 只会报 login failed，不会说清楚是哪一边不同）。
+auth.method = "token"
+auth.token = "与服务端一致的 token"
+
+# 一条最简 TCP 穿透：把本机的 localPort 映射到服务端的 remotePort。
+[[proxies]]
+name = "example-tcp"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 3389
+remotePort = 14006

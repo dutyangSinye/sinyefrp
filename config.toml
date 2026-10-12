@@ -1,0 +1,51 @@
+# SinyeFRP 管理平台配置
+#
+# 开发环境与生产环境共用同一份代码，差异只体现在本文件。
+# 优先级：本文件 < SINYEFRP_* 环境变量 < 命令行参数。
+
+[server]
+# 仅监听环回地址。生产环境的 frps 主机带有公网 IP，
+# 切勿改为 0.0.0.0，否则管理控制台会直接暴露到公网（01-prd §8.4）。
+listen_addr = "127.0.0.1"
+# 7800 刻意避开 frps 的 7000 与 Dashboard 的 7500。
+port = 7800
+
+[database]
+path = "data/sinyefrp.db"
+
+[log]
+dir = "logs"
+level = "debug"
+
+[security]
+# 会话有效期（小时）。每次请求滑动续期。
+session_hours = 12
+# 连续失败多少次后锁定；锁定窗口与时长见下两项。
+max_login_failures = 5
+fail_window_minutes = 10
+lock_minutes = 15
+
+[node]
+name = "local-dev"
+# 开发环境：本机 frps 的 Dashboard（见 frp/frps.toml 的 webServer 段）。
+# 生产环境：改为与 frps 同机部署后的 http://127.0.0.1:7500。
+#
+# 注意：这里的值只是「数据库还没有节点配置时」的兜底。
+# 一旦在管理台初始化向导或设置页保存过节点，就以数据库为准。
+api_url = "http://127.0.0.1:7500"
+username = "admin"
+# 不在此处存放明文凭据。首次初始化时在界面上填写，
+# 之后由管理平台用 Windows DPAPI 加密后存入 SQLite。
+#
+# 调试旁路（仅限开发期）：SINYEFRP_NODE_PASSWORD / SINYEFRP_NODE_API_URL
+# 会覆盖数据库中的节点配置，用于把管理平台指向探测实例。生产环境不要设置。
+password = ""
+timeout_seconds = 5
+
+[pack]
+# 开发期查找 FRP 二进制的回退目录（相对仓库根或绝对路径皆可）。
+#
+# 正式交付件把 frpc.exe / frps.exe 编译进 exe 本体，运行时不读这个目录；
+# 它只服务于开发联调，避免每次构建都复制 36 MB 二进制。
+# 构建内嵌版本请执行：scripts\build.ps1
+fallback_dir = "frp"

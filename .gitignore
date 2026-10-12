@@ -1,0 +1,63 @@
+# SinyeFRP 仓库忽略规则
+#
+# 原则：**凡是可以由脚本重新生成的东西，都不进仓库**。
+# 进仓库的是源码、脚本文档与配置模板 —— 也就是 clone 下来之后
+# 靠 scripts/ 里的脚本能重新搭出一切的那一层。
+#
+# 反例（曾经踩过）：把 FRP 二进制提交进去，升级 0.69 → 0.71 时
+# git 历史里就永久多压了一份 60 MB；而它本来可以从上游重新下载。
+
+# ---------- 1. 本地运行与构建产物 ----------
+
+# 回归测试实例（四套隔离实例 + 本地 frps）、临时校验产物、平台部署包。
+# 体积可达数 GB，且每台机器每次跑回归都会重新生成。
+.workbuddy/
+
+# 前端依赖（由 npm ci / npm install 还原）
+web/node_modules/
+
+# Go 编译输出（由 scripts\build.ps1 生成）
+bin/
+
+# 前端构建输出。
+# internal\web\dist 是 go:embed all:dist 的目标目录，必须存在且非空，
+# 因此单独保留占位文件；真正的产物由前端构建覆盖。
+web/dist/
+internal/web/dist/*
+!internal/web/dist/PLACEHOLDER.md
+
+# ---------- 2. FRP 二进制 ----------
+#
+# 不入库，改由 scripts\fetch-frp.ps1 按版本从上游 Release 下载。
+# 下载后落在 frp\，再由 build.ps1 复制进 internal\pack\assets\ 供 go:embed 内嵌。
+# 两者都排除：前者是下载缓存，后者是拷贝结果，都可重建。
+frp/*.exe
+frp/linux-amd64/
+frp/linux-arm64/
+
+# 本机运行配置（不是项目资产，是「这台机器怎么连」）：
+#   frps.toml  本地 frps 的 Dashboard 口令
+#   frpc.toml  真实接入点地址 + 本机穿透的代理（含远程桌面端口）
+# 两者都各放一份脱敏样板 frps.toml.example / frpc.toml.example 供参考。
+# 排除的是运行实例，不是模板 —— 本机改口令不会被 git 记下来，这是有意的。
+frp/frpc.toml
+frp/frps.toml
+internal/pack/assets/*.exe
+internal/pack/assets/linux-amd64/
+internal/pack/assets/linux-arm64/
+
+# ---------- 3. 运行时数据 ----------
+#
+# config.toml 里 database.path = "data/sinyefrp.db"、log.dir = "logs"，
+# 都在仓库根下，不排除会把 SQLite 库（含 DPAPI 加密凭据、会话表、端口台账）
+# 一起提交上去。
+data/
+logs/
+*.db
+*.db-wal
+*.db-shm
+
+# ---------- 4. 杂项 ----------
+*.log
+.DS_Store
+Thumbs.db
