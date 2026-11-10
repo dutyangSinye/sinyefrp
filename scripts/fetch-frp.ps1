@@ -16,6 +16,9 @@ internal\pack\assets\ 供 go:embed 内嵌，不会自己下载。
 意味着「出不了 Linux 客户端包」，Windows 包照常能出。判死会让
 网络不通的机器连 Windows 包都出不来，不划算。
 
+另：本脚本还会拉取 IP 归属地数据（ip2region_v4.xdb，internal\ipgeo
+内嵌用），失败只警告 —— 归属地列显示「—」，其余功能不受影响。
+
 .EXAMPLE
 .\scripts\fetch-frp.ps1
 .\scripts\fetch-frp.ps1 -Version 0.69.5 -Force
@@ -124,6 +127,29 @@ foreach ($t in $targets) {
 }
 
 Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+
+# ---- IP 归属地数据（ip2region IPv4 xdb，供 internal\ipgeo 内嵌） ----
+#
+# 与 FRP 二进制一起在这里拉取的原因：两者都是「不入库、可从上游重新获取」
+# 的第三方资产，clone 之后跑一次本脚本就齐 —— 没必要为此多一个脚本入口。
+# 失败只警告不判死：归属地是展示列，缺了就是全列「—」，监控与出包不受影响
+# （与 internal\ipgeo 的降级契约一致）。
+$dbDir  = Join-Path $Root 'internal\ipgeo\data'
+$dbPath = Join-Path $dbDir 'ip2region_v4.xdb'
+if (-not (Test-Path $dbDir)) { New-Item -ItemType Directory -Force -Path $dbDir | Out-Null }
+if ((-not $Force) -and (Test-Path $dbPath)) {
+    Write-Host '[skip] ip2region_v4.xdb 已就绪' -ForegroundColor DarkGray
+} else {
+    Write-Host '[get ] ip2region_v4.xdb <- ip2region master/data' -ForegroundColor Cyan
+    try {
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb' `
+            -OutFile $dbPath -UseBasicParsing
+        Write-Host '[ ok ] internal\ipgeo\data\ip2region_v4.xdb' -ForegroundColor Green
+    } catch {
+        Write-Host ('[warn] 归属地数据下载失败，该列将显示「—」: ' + $_.Exception.Message) -ForegroundColor Yellow
+        $warn++
+    }
+}
 
 Write-Host ''
 Write-Host ('FRP ' + $Version + ' 就绪：' + $FrpDir) -ForegroundColor Green

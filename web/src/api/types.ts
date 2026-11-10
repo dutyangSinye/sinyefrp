@@ -100,6 +100,15 @@ export interface ClientInfo {
   robot_type?: string
   /** 该 clientID 是否在本平台台账里登记过（false 多为别处手工配置的 frpc）。 */
   registered?: boolean
+  /**
+   * 客户端 IP 的归属地（如「中国 广东省 深圳 电信」或「内网」）。
+   *
+   * 由后端用内嵌的 ip2region 离线数据查询得到（不查外网）。空串或字段缺失
+   * 表示查不出 —— 数据文件未内嵌、IPv6 地址或归属不明，界面统一显示「—」。
+   * **不要**把「查不出」渲染成「未知」：内网 IP 明确显示「内网」，
+   * 剩下的空值就是真没数据，两者是不同的信息。
+   */
+  ip_geo?: string
 }
 
 export interface ProxyConf {

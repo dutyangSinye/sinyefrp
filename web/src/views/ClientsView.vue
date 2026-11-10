@@ -443,6 +443,11 @@ function proxyTypeText(p: ProxyInfo): string {
         <el-table-column prop="clientIP" label="IP" min-width="140">
           <template #default="{ row }"><span class="sf-mono">{{ row.clientIP || '—' }}</span></template>
         </el-table-column>
+        <!-- 归属地：后端离线查询（ip2region 内嵌数据），空串一律渲染「—」。
+             内网 IP 显示「内网」，那是确定的信息，与空串是两回事。 -->
+        <el-table-column prop="ip_geo" label="归属地" min-width="140" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.ip_geo || '—' }}</template>
+        </el-table-column>
         <el-table-column prop="version" label="版本" min-width="110">
           <template #default="{ row }"><span class="sf-mono">{{ row.version || '—' }}</span></template>
         </el-table-column>
@@ -511,6 +516,9 @@ function proxyTypeText(p: ProxyInfo): string {
             <el-descriptions-item label="主机名">{{ shownClient.hostname || '—' }}</el-descriptions-item>
             <el-descriptions-item label="IP">
               <span class="sf-mono">{{ shownClient.clientIP || '—' }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="归属地">
+              {{ shownClient.ip_geo || '—' }}
             </el-descriptions-item>
             <el-descriptions-item label="FRP 版本">
               <span class="sf-mono">{{ shownClient.version || '—' }}</span>

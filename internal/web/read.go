@@ -11,6 +11,7 @@ import (
 	"sinyefrp/internal/collector"
 	"sinyefrp/internal/endpoint"
 	"sinyefrp/internal/frpapi"
+	"sinyefrp/internal/ipgeo"
 	"sinyefrp/internal/pack"
 )
 
@@ -51,6 +52,14 @@ type clientView struct {
 	// 这个客户端根本不是本平台签发的包 —— 多半是在别的机器上手工配的 frpc。
 	// 界面据此给出完全不同的提示，而不是把两种情况都画成一个空单元格。
 	Registered bool `json:"registered"`
+	// IPGeo 是客户端 IP 的归属地（如「中国 广东省 深圳 电信」或「内网」）。
+	//
+	// 由 internal\ipgeo 离线查询得到（ip2region 内嵌数据，不发外网）。
+	// 空串表示查不出 —— 可能是数据文件未内嵌、IPv6 地址或查询失败，
+	// 调用方一律渲染成「—」，**不要**退化成显示 0 或「未知」：
+	// 前者非法，后者会把「没数据」伪装成「归属不明」两回事。
+	// 与 DisplayName 同一次循环附加，不存在单独的采集时点。
+	IPGeo string `json:"ip_geo,omitempty"`
 }
 
 // proxyView 是 FRP 代理信息 + 本平台台账里才有的几个附加字段。
@@ -499,6 +508,10 @@ func (s *Server) viewClients(ctx context.Context, in []frpapi.ClientInfo) []clie
 				v.Registered = true
 			}
 		}
+		// 归属地与台账无关，直接按 IP 查；查不出由 ipgeo.Search 返回空串，
+		// 界面渲染成「—」。放在附加循环里而不是 collector，是因为它属于
+		// 「展示时才需要」的衍生信息，不值得进快照占内存。
+		v.IPGeo = ipgeo.Search(c.ClientIP)
 		out = append(out, v)
 	}
 	return out

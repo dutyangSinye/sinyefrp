@@ -109,6 +109,11 @@ if ($SkipWeb) {
     Write-Host '      本次将沿用 internal\web\dist 中已有的产物' -ForegroundColor Yellow
 } else {
     Write-Host '[1/4] 正在构建前端…' -ForegroundColor Cyan
+    # vite 的 emptyOutDir 会清空 dist，把仓库里唯一的占位文件一并删掉。
+    # 先读进内存、构建完写回：它是 go:embed all:dist 不因空目录而失败的唯一保障。
+    $distPhPath = Join-Path $Root 'internal\web\dist\PLACEHOLDER.md'
+    $distPhText = $null
+    if (Test-Path $distPhPath) { $distPhText = [System.IO.File]::ReadAllText($distPhPath) }
     # 只用 vite build，不跑 vue-tsc：类型检查由交付前的独立步骤执行，
     # 挂在构建路径上会让「改一行样式」也背上全量类型检查的代价。
     $web = Invoke-Native -File 'npm.cmd' -Arguments @('run', 'build:only') -WorkDir $webDir
@@ -118,6 +123,9 @@ if ($SkipWeb) {
     $distIndex = Join-Path $Root 'internal\web\dist\index.html'
     if (-not (Test-Path $distIndex)) {
         Fail 14 '前端构建未产出 internal\web\dist\index.html'
+    }
+    if ($distPhText -and -not (Test-Path $distPhPath)) {
+        [System.IO.File]::WriteAllText($distPhPath, $distPhText, (New-Object System.Text.UTF8Encoding($false)))
     }
     Write-Host ('[1/4] 前端构建完成，入口文件时间: ' + (Get-Item $distIndex).LastWriteTime) -ForegroundColor Green
 }
